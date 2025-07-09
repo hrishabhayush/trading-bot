@@ -1,4 +1,7 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config({ quiet: true });
 
 const TWEET_MAX_TIME_MS = 30 * 60 * 1000;
 

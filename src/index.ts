@@ -1,21 +1,23 @@
 import dotenv from "dotenv";
 import { getTweets } from "./get-tweets";
 import { getTokenFromLLM } from "./get-token-from-llm";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { swap } from "./swap";
+
 dotenv.config({ quiet: true });
+
+const SOL_AMOUNT = 0.001 * LAMPORTS_PER_SOL;
 
 async function main() {
     // const newTweets = await getTweets(userName);
 
-    // for (tweet of newTweets) {
-    //     const tokenAddress = await getTokenFromLLM(tweet.description);
-    //     if (tokenAddress) {
-    //         const txn = await createSwapInstruction();
-    //         for (let i =0; i < SPAM_COUNT; i++) {
-    //             sendTxn(txn);
-
-    const tokenAddress = await getTokenFromLLM("When everyone finally wakes up to the potential to $BRETT on $ETH,  just like $PEPE. They're gonna start buying it. AyPNhxMEh5n44T8GhFCCzQzUXh2tTRagpQduVYeEpump");
-
-    console.log(tokenAddress);
+    // for (let tweet of newTweets) {
+    //     const tokenAddress = await getTokenFromLLM(tweet.contents);
+    //     if (tokenAddress !== "null") {
+    //         await swap(tokenAddress, SOL_AMOUNT);
+    //     }
+    // }
+    await swap("DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", SOL_AMOUNT);
 }
 
 main();

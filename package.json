@@ -12,7 +12,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@raydium-io/raydium-sdk-v2": "0.1.141-alpha",
+    "@solana/spl-token": "^0.4.13",
+    "@solana/web3.js": "^1.98.2",
     "axios": "^1.10.0",
+    "bs58": "^6.0.0",
     "openai": "^5.8.2",
     "typescript": "^5.8.3"
   },
