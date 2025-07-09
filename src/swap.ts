@@ -1,4 +1,4 @@
-import { Connection, Keypair, PublicKey,Transaction, VersionedTransaction, sendAndConfirmTransaction } from '@solana/web3.js'
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,Transaction, VersionedTransaction, sendAndConfirmTransaction } from '@solana/web3.js'
 import { NATIVE_MINT } from '@solana/spl-token'
 import axios from 'axios'
 import { API_URLS } from '@raydium-io/raydium-sdk-v2'
@@ -9,7 +9,7 @@ dotenv.config({ quiet: true });
 
 const isV0Tx = true;
 
-const connection = new Connection(process.env.RPC_URL!); 
+const connection = new Connection(process.env.RPC_URL!, 'confirmed'); 
 
 const slippage = 5;
 
@@ -80,5 +80,37 @@ export async function swap(tokenAddress: string, amount: number) {
             'confirmed'
         )
         console.log(`${idx} transaction confirmed`)
+    }
+}
+
+export async function sendPortalTransaction(tokenAddress: string, amount: number) {
+    const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        "publicKey": owner.publicKey.toBase58(),
+        "action": "buy",
+        "mint": tokenAddress,
+        "denominatedInSol": "true",     // "true" if amount is amount of SOL, "false" if amount is number of tokens
+        "amount": amount,                  // amount of SOL or tokens
+        "slippage": 5,                  // percent slippage allowed
+        "priorityFee": 0.00001,          // priority fee
+        "pool": "auto"                   
+      })
+    });
+
+    const bal = await connection.getBalance(owner.publicKey);
+    console.log('SOL balance:', bal / LAMPORTS_PER_SOL);
+    if (response.status === 200) {
+        const data = await response.arrayBuffer();
+        const tx = VersionedTransaction.deserialize(new Uint8Array(data));
+        const signerKeyPair = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
+        tx.sign([signerKeyPair]);
+        const signature = await connection.sendTransaction(tx);
+        console.log(`Transaction: https://solscan.io/tx/${signature}`);
+    } else {
+        console.error(response.statusText); // log error message
     }
 }

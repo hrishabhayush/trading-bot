@@ -2,22 +2,22 @@ import dotenv from "dotenv";
 import { getTweets } from "./get-tweets";
 import { getTokenFromLLM } from "./get-token-from-llm";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { swap } from "./swap";
+import { swap, sendPortalTransaction } from "./swap";
 
 dotenv.config({ quiet: true });
 
-const SOL_AMOUNT = 0.001 * LAMPORTS_PER_SOL;
+const SOL_AMOUNT = 0.001;
 
-async function main() {
-    // const newTweets = await getTweets(userName);
-
-    // for (let tweet of newTweets) {
-    //     const tokenAddress = await getTokenFromLLM(tweet.contents);
-    //     if (tokenAddress !== "null") {
-    //         await swap(tokenAddress, SOL_AMOUNT);
-    //     }
-    // }
-    await swap("DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", SOL_AMOUNT);
+async function main(userName: string) {
+    const newTweets = await getTweets(userName);
+    console.log(newTweets);
+    for (let tweet of newTweets) {
+        const tokenAddress = await getTokenFromLLM(tweet.contents);
+        if (tokenAddress !== "null") {
+            console.log(`Trying to execute tweet => ${tweet.contents}`);
+            await sendPortalTransaction(tokenAddress, SOL_AMOUNT);
+        }
+    }
 }
 
-main();
+main("CraftAgent_");
