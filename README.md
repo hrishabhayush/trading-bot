@@ -1,6 +1,6 @@
 # trading-bot
 
-![System Architecture](assets/system-arch.jpg)
+![System Architecture](assets/system-arch.png)
 
 ## Setup instructions 
 
