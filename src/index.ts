@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import { getTweets } from "./get-tweets";
-import { getTokenFromLLM } from "./get-token-from-llm";
+import { resolveTokenAddress } from "./get-token-from-llm";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { sendPortalTransaction } from "./swap";
 import { feed } from "./market-feed";
@@ -17,7 +17,7 @@ async function main(userName: string[]) {
         const newTweets = await getTweets(user);
         console.log(newTweets);
         for (let tweet of newTweets) {
-            const tokenAddress = await getTokenFromLLM(tweet.contents);
+            const tokenAddress = await resolveTokenAddress(tweet.contents);
             if (tokenAddress !== "null") {
                 console.log(`Trying to execute tweet => ${tweet.contents}`);
                 await sendPortalTransaction(tokenAddress, SOL_AMOUNT, "buy", true);
