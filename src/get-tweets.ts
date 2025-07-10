@@ -23,6 +23,9 @@ export async function getTweets(userName: string) : Promise<Tweet[]> {
     };
     
     const response = await axios.request(config);
+    // const instructions = response.data.data.user_result.result.timeline_response.timeline.instructions;
+    // const addEntries = instructions.find((x: any) => x.__typename === "TimelineAddEntries");
+    // const entries = addEntries?.entries || [];
     const timelineResponse = response.data.data.user_result.result.timeline_response.timeline.instructions.filter((x: any) => x.__typename === "TimelineAddEntries");
 
     const tweets: Tweet[] = [];
@@ -38,6 +41,20 @@ export async function getTweets(userName: string) : Promise<Tweet[]> {
         }
     });
 
-    // Filter out tweets not more than 1 minute old
+    // entries.forEach((entry: any) => {
+    //     try {
+    //         const tweetResult = entry?.content?.itemContent?.tweet_results?.result;
+
+    //         tweets.push({
+    //             contents: tweetResult.legacy.full_text,
+    //             id: tweetResult.legacy.id_str,
+    //             createdAt: tweetResult.legacy.created_at
+    //         })
+    //     } catch(e) {
+
+    //     }
+    // });
+
+    // Filter out tweets not more than TWEET_MAX_TIME_MS minutes old
     return tweets.filter(x => new Date(x.createdAt).getTime() > Date.now() - TWEET_MAX_TIME_MS);
 }

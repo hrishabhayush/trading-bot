@@ -15,6 +15,7 @@ const slippage = 5;
 
 const owner = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
 
+// swap sol to token using the Raydium API
 export async function swap(tokenAddress: string, amount: number) {
 
     // get statistical transaction fee from API
@@ -83,6 +84,8 @@ export async function swap(tokenAddress: string, amount: number) {
     }
 }
 
+
+// send portal transaction to pumpportal.fun 
 export async function sendPortalTransaction(tokenAddress: string, amount: number) {
     const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
       method: "POST",
@@ -100,9 +103,8 @@ export async function sendPortalTransaction(tokenAddress: string, amount: number
         "pool": "auto"                   
       })
     });
-
-    const bal = await connection.getBalance(owner.publicKey);
-    console.log('SOL balance:', bal / LAMPORTS_PER_SOL);
+    console.log("response=", response);
+    
     if (response.status === 200) {
         const data = await response.arrayBuffer();
         const tx = VersionedTransaction.deserialize(new Uint8Array(data));
