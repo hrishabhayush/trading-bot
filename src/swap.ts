@@ -86,7 +86,12 @@ export async function swap(tokenAddress: string, amount: number) {
 
 
 // send portal transaction to pumpportal.fun 
-export async function sendPortalTransaction(tokenAddress: string, amount: number) {
+export async function sendPortalTransaction(
+  tokenAddress: string,
+  amount: number | string,
+  action: "buy" | "sell",
+  denominatedInSol: boolean = true
+) {
     const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
       method: "POST",
       headers: {
@@ -94,10 +99,10 @@ export async function sendPortalTransaction(tokenAddress: string, amount: number
       },
       body: JSON.stringify({
         "publicKey": owner.publicKey.toBase58(),
-        "action": "buy",
+        "action": action,
         "mint": tokenAddress,
-        "denominatedInSol": "true",     // "true" if amount is amount of SOL, "false" if amount is number of tokens
-        "amount": amount,                  // amount of SOL or tokens
+        "denominatedInSol": denominatedInSol ? "true" : "false", // see docs
+        "amount": amount,                                     // SOL, tokens or "%" string
         "slippage": 5,                  // percent slippage allowed
         "priorityFee": 0.00001,          // priority fee
         "pool": "auto"                   
