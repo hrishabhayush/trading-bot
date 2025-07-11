@@ -10,6 +10,21 @@ const client = new OpenAI({
 
 let tokenMap: Map<string, string> = new Map();
 
+// ---------- fast local extractors ---------- //
+function extractMintAddress(text: string): string | null {
+    // Solana CAs are base58, 32–44 chars, excluding 0,O,l etc.
+    const regex = /[1-9A-HJ-NP-Za-km-z]{32,44}/g;
+    const match = text.match(regex);
+    return match ? match[0] : null;
+}
+
+function extractTicker(text: string): string | null {
+    // Expect a $TICKER pattern (2-10 alphanum chars)
+    const regex = /\$([A-Za-z0-9]{2,10})/;
+    const match = regex.exec(text);
+    return match ? match[1].toUpperCase() : null;
+}
+
 export async function getTokenFromLLM(contents: string): Promise<string> {
     
     const completion = await client.chat.completions.create({
@@ -37,16 +52,32 @@ async function loadTokenMap() {
 export async function resolveTokenAddress(contents: string) : Promise<string> {
     await loadTokenMap();
 
-    const response = await getTokenFromLLM(contents);
+    // 1) direct contract address present
+    const mintDirect = extractMintAddress(contents);
+    if (mintDirect) {
+        return mintDirect;
+    }
 
+    // 2) ticker present and found in registry
+    const ticker = extractTicker(contents);
+    if (ticker) {
+        const mintFromTicker = tokenMap.get(ticker);
+        if (mintFromTicker) {
+            return mintFromTicker;
+        }
+    }
+
+    // 3) fallback to LLM (may return CA or ticker)
+    const response = await getTokenFromLLM(contents);
     if (response === "null") return "null";
 
-    // Check if it's likely a base58 Solana address
+    // if LLM returns a CA, trust it
     const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
     if (base58Regex.test(response)) {
         return response;
     }
 
-    const mint = tokenMap?.get(response.toUpperCase());
+    // else treat as ticker
+    const mint = tokenMap.get(response.toUpperCase());
     return mint ?? "null";
 }

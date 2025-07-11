@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ quiet: true });
 
-const TWEET_MAX_TIME_MS = 10 * 60 * 1000;
+const TWEET_MAX_TIME_MS = 1 * 60 * 1000;
 
 interface Tweet {
     contents: string;

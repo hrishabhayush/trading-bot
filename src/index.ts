@@ -4,7 +4,7 @@ import { resolveTokenAddress } from "./get-token-from-llm";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { sendPortalTransaction } from "./swap";
 import { feed } from "./market-feed";
-import { strategy } from "./strategy";
+import { strategy, getPnlSnapshot } from "./strategy";
 import { usersList } from "./users-list";
 import { primusProof } from "./zktls";
 
@@ -20,11 +20,20 @@ async function main(userName: string[]) {
             const tokenAddress = await resolveTokenAddress(tweet.contents);
             if (tokenAddress !== "null") {
                 console.log(`Trying to execute tweet => ${tweet.contents}`);
-                await sendPortalTransaction(tokenAddress, SOL_AMOUNT, "buy", true);
+                // subscribe first so we capture our own buy tick
+                feed.subscribe([tokenAddress]);
+
+                const tradeOk = await sendPortalTransaction(tokenAddress, SOL_AMOUNT, "buy", true);
+
+                if (!tradeOk) {
+                  console.warn(`[MAIN] trade failed for ${tokenAddress}, skipping tracking.`);
+                  // unsubscribe if trade failed
+                  feed.unsubscribe([tokenAddress]);
+                  continue;
+                }
 
                 // start strategy tracking & market data
                 strategy.addPosition(tokenAddress, 0, 0);
-                feed.subscribe([tokenAddress]);
 
                 // ensure price events flow into strategy
                 if (!feed.listenerCount("price")) {
@@ -57,3 +66,12 @@ async function runLoop() {
 }
 
 runLoop();
+
+// Every minute print consolidated PnL snapshot
+setInterval(() => {
+  const snap = getPnlSnapshot();
+  if (snap.length) {
+    console.log("\n=== PnL Snapshot ===");
+    console.table(snap);
+  }
+}, 1_000);

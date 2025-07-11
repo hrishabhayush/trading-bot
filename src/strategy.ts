@@ -9,6 +9,7 @@ interface Position {
     sizeTokens: number; // optional for % sells
     realizedSol: number;
     highestPrice: number;
+    lastPrice: number; // latest price seen
     createdAt: number;
     hardStopPct: number;
     trailingPct: number;
@@ -29,6 +30,7 @@ export class Strategy extends EventEmitter {
             sizeTokens,
             realizedSol: 0,
             highestPrice: entryPrice,
+            lastPrice: entryPrice, // initialise lastPrice
             createdAt: Date.now(),
             hardStopPct: -0.30,
             trailingPct: 0.25,
@@ -51,6 +53,7 @@ export class Strategy extends EventEmitter {
             position.entryPrice = lastPrice;
             console.log(`[STRAT] ${mint} entryPrice set to ${lastPrice.toFixed(4)} SOL`);
         }
+        position.lastPrice = lastPrice; // keep current price
 
         if (lastPrice > position.highestPrice) {
             position.highestPrice = lastPrice;
@@ -139,3 +142,19 @@ export const strategy = new Strategy();
 export function getOpenPositions() {
     return [...strategy["positions"].values()];
   }
+
+// Produce table-friendly snapshot of live positions + PnL
+export function getPnlSnapshot() {
+    return getOpenPositions().map((pos) => {
+        const pnlPct = pos.entryPrice > 0 ? ((pos.lastPrice / pos.entryPrice - 1) * 100) : 0;
+        return {
+            mint: pos.mint,
+            entrySOL: pos.entryPrice.toFixed(4),
+            lastSOL: pos.lastPrice.toFixed(4),
+            pnlPct: pnlPct.toFixed(1),
+            tokensLeft: pos.sizeTokens,
+            highest: pos.highestPrice.toFixed(4),
+            ageMin: ((Date.now() - pos.createdAt) / 60000).toFixed(1),
+        };
+    });
+}

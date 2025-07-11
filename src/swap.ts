@@ -1,4 +1,4 @@
-import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,Transaction, VersionedTransaction, sendAndConfirmTransaction } from '@solana/web3.js'
+import { Connection, Keypair, PublicKey,Transaction, VersionedTransaction, sendAndConfirmTransaction } from '@solana/web3.js'
 import { NATIVE_MINT } from '@solana/spl-token'
 import axios from 'axios'
 import { API_URLS } from '@raydium-io/raydium-sdk-v2'
@@ -91,33 +91,36 @@ export async function sendPortalTransaction(
   amount: number | string,
   action: "buy" | "sell",
   denominatedInSol: boolean = true
-) {
-    const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        "publicKey": owner.publicKey.toBase58(),
-        "action": action,
-        "mint": tokenAddress,
-        "denominatedInSol": denominatedInSol ? "true" : "false", // see docs
-        "amount": amount,                                     // SOL, tokens or "%" string
-        "slippage": 5,                  // percent slippage allowed
-        "priorityFee": 0.00001,          // priority fee
-        "pool": "auto"                   
-      })
-    });
-    console.log("response=", response);
-    
-    if (response.status === 200) {
-        const data = await response.arrayBuffer();
-        const tx = VersionedTransaction.deserialize(new Uint8Array(data));
-        const signerKeyPair = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
-        tx.sign([signerKeyPair]);
-        const signature = await connection.sendTransaction(tx);
-        console.log(`Transaction: https://solscan.io/tx/${signature}`);
-    } else {
-        console.error(response.statusText); // log error message
-    }
+): Promise<boolean> {
+  const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      publicKey: owner.publicKey.toBase58(),
+      action: action,
+      mint: tokenAddress,
+      denominatedInSol: denominatedInSol ? "true" : "false", // see docs
+      amount: amount, // SOL, tokens or "%" string
+      slippage: 5, // percent slippage allowed
+      priorityFee: 0.00001, // priority fee
+      pool: "auto",
+    }),
+  });
+
+  console.log("response=", response);
+
+  if (response.status === 200) {
+    const data = await response.arrayBuffer();
+    const tx = VersionedTransaction.deserialize(new Uint8Array(data));
+    const signerKeyPair = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
+    tx.sign([signerKeyPair]);
+    const signature = await connection.sendTransaction(tx);
+    console.log(`Transaction: https://solscan.io/tx/${signature}`);
+    return true;
+  } else {
+    console.error(response.statusText); // log error message
+    return false;
+  }
 }
