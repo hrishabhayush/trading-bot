@@ -4,9 +4,10 @@
 
 Learn more about the project through the pitch deck - https://www.canva.com/design/DAGs3bg63_k/gNaGEV1HQV-7rUishWetng/edit?utm_content=DAGs3bg63_k&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
 
-![System Architecture](assets/system-arch.png)
 
-## Setup instructions 
+## System architecture 
+
+![System Architecture](assets/system-arch.png)
 
 ## Setup instructions
 
@@ -24,7 +25,6 @@ Learn more about the project through the pitch deck - https://www.canva.com/desi
 3. Create and fill your environment file  
    ```bash
    cp .env.example .env
-   # then edit .env and set:
    #   PRIVATE_KEY=         # base-58 Solana key
    #   RPC_URL=             # your RPC endpoint
    #   OPENAI_API_KEY=
