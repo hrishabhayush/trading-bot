@@ -37,12 +37,12 @@ export async function primusProof(tokenAddress: string, amount: number) {
             "pool": "auto",
         }
     } as const;
-
+    
     const responseResolves = [
         {
             keyName: 'rawTx',
-            parseType: 'plain',
-            parsePath: '$'
+            parseType: 'json',
+            parsePath: '$.rawTx'
         }
     ];
     
@@ -55,10 +55,10 @@ export async function primusProof(tokenAddress: string, amount: number) {
 
     // Start attestation process.
     console.time("zktls prove");
+    generateRequest.setSslCipher("ECDHE-ECDSA-AES128-GCM-SHA256");
     const attestation = await zkTLS.startAttestation(generateRequest);
     console.timeEnd("zktls prove");
     console.log("attestation=", attestation);
-    generateRequest.setSslCipher("ECDHE-ECDSA-AES128-GCM-SHA256");
 
     console.time("zktls verify");
     const verifyResult = zkTLS.verifyAttestation(attestation);
