@@ -118,6 +118,7 @@ export async function sendPortalTransaction(
     tx.sign([signerKeyPair]);
     const signature = await connection.sendTransaction(tx);
     console.log(`Transaction: https://solscan.io/tx/${signature}`);
+    console.log("================================================")
     return true;
   } else {
     console.error(response.statusText); // log error message

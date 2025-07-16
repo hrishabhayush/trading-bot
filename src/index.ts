@@ -4,7 +4,7 @@ import { resolveTokenAddress } from "./get-token-from-llm";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { sendPortalTransaction } from "./swap";
 import { feed } from "./market-feed";
-import { strategy, getPnlSnapshot } from "./strategy";
+import { strategy } from "./strategy";
 import { usersList } from "./users-list";
 import { primusProof } from "./zktls";
 
@@ -67,11 +67,11 @@ async function runLoop() {
 
 runLoop();
 
-// Every minute print consolidated PnL snapshot
-setInterval(() => {
-  const snap = getPnlSnapshot();
-  if (snap.length) {
-    console.log("\n=== PnL Snapshot ===");
-    console.table(snap);
-  }
-}, 1_000);
+// // Every minute print consolidated PnL snapshot
+// setInterval(() => {
+//   const snap = getPnlSnapshot();
+//   if (snap.length) {
+//     console.log("\n=== PnL Snapshot ===");
+//     console.table(snap);
+//   }
+// }, 1_000);

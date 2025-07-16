@@ -143,18 +143,18 @@ export function getOpenPositions() {
     return [...strategy["positions"].values()];
   }
 
-// Produce table-friendly snapshot of live positions + PnL
-export function getPnlSnapshot() {
-    return getOpenPositions().map((pos) => {
-        const pnlPct = pos.entryPrice > 0 ? ((pos.lastPrice / pos.entryPrice - 1) * 100) : 0;
-        return {
-            mint: pos.mint,
-            entrySOL: pos.entryPrice.toFixed(4),
-            lastSOL: pos.lastPrice.toFixed(4),
-            pnlPct: pnlPct.toFixed(1),
-            tokensLeft: pos.sizeTokens,
-            highest: pos.highestPrice.toFixed(4),
-            ageMin: ((Date.now() - pos.createdAt) / 60000).toFixed(1),
-        };
-    });
-}
+// // Produce table-friendly snapshot of live positions + PnL
+// export function getPnlSnapshot() {
+//     return getOpenPositions().map((pos) => {
+//         const pnlPct = pos.entryPrice > 0 ? ((pos.lastPrice / pos.entryPrice - 1) * 100) : 0;
+//         return {
+//             mint: pos.mint,
+//             entrySOL: pos.entryPrice.toFixed(4),
+//             lastSOL: pos.lastPrice.toFixed(4),
+//             pnlPct: pnlPct.toFixed(1),
+//             tokensLeft: pos.sizeTokens,
+//             highest: pos.highestPrice.toFixed(4),
+//             ageMin: ((Date.now() - pos.createdAt) / 60000).toFixed(1),
+//         };
+//     });
+// }

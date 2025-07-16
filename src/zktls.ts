@@ -23,10 +23,10 @@ export async function primusProof(tokenAddress: string, amount: number) {
     const request = {
         url: "https://pumpportal.fun/api/trade-local",
         method: "POST",
-        headers: {
+        header: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({
+        body: {
             "publicKey": owner.publicKey.toBase58(),
             "action": "buy",
             "mint": tokenAddress,
@@ -35,22 +35,17 @@ export async function primusProof(tokenAddress: string, amount: number) {
             "slippage": 5,                  // percent slippage allowed
             "priorityFee": 0.00001,          // priority fee
             "pool": "auto",
-        })
+        }
     } as const;
 
     const responseResolves = [
         {
-            keyName: 'tx',
-            parseType: "json" as const,
-            parsePath: '$.transaction'
-        }, 
-        {
-            keyName: "ok",
-            parseType: "json" as const,
-            parsePath: "$.success"
+            keyName: 'rawTx',
+            parseType: 'plain',
+            parsePath: '$'
         }
     ];
-
+    
     // Generate attestation request
     const generateRequest = zkTLS.generateRequestParams(request, responseResolves);
 
@@ -63,6 +58,7 @@ export async function primusProof(tokenAddress: string, amount: number) {
     const attestation = await zkTLS.startAttestation(generateRequest);
     console.timeEnd("zktls prove");
     console.log("attestation=", attestation);
+    generateRequest.setSslCipher("ECDHE-ECDSA-AES128-GCM-SHA256");
 
     console.time("zktls verify");
     const verifyResult = zkTLS.verifyAttestation(attestation);
