@@ -9,10 +9,11 @@ const mode = 'auto';
 const owner = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
 
 
-export async function primusProof(tokenAddress: string, amount: number) {
+export async function primusProof(tokenAddress: string, amount: number): Promise<boolean> {
     // Initialize parameters, the init function is recommended to be called when the page is initialized.
     const appId = process.env.ZKTLS_APP_ID!;
     const appSecret= process.env.ZKTLS_APP_SECRET!; 
+    const pumpApiKey = process.env.PUMP_API_KEY!;
 
     const zkTLS = new PrimusCoreTLS();
 
@@ -21,13 +22,13 @@ export async function primusProof(tokenAddress: string, amount: number) {
 
     // Generate attestation request.
     const request = {
-        url: "https://pumpportal.fun/api/trade-local",
+        url: `https://pumpportal.fun/api/trade?api-key=${pumpApiKey}`,
         method: "POST",
         header: {
             "Content-Type": "application/json"
         },
-        body: {
-            "publicKey": owner.publicKey.toBase58(),
+        body: JSON.stringify({
+            // "publicKey": owner.publicKey.toBase58(),
             "action": "buy",
             "mint": tokenAddress,
             "denominatedInSol": "true",     // "true" if amount is amount of SOL, "false" if amount is number of tokens
@@ -35,14 +36,13 @@ export async function primusProof(tokenAddress: string, amount: number) {
             "slippage": 5,                  // percent slippage allowed
             "priorityFee": 0.00001,          // priority fee
             "pool": "auto",
-        }
-    } as const;
+        })
+    };
     
     const responseResolves = [
         {
-            keyName: 'rawTx',
-            parseType: 'json',
-            parsePath: '$.rawTx'
+            keyName: 'signature',
+            parsePath: '$.signature'
         }
     ];
     
@@ -64,6 +64,6 @@ export async function primusProof(tokenAddress: string, amount: number) {
     const verifyResult = zkTLS.verifyAttestation(attestation);
     console.timeEnd("zktls verify");
     console.log("verifyResult=", verifyResult);
-
-    return attestation;
+    
+    return verifyResult as boolean;
   } 

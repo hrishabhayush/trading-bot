@@ -14,6 +14,7 @@ const connection = new Connection(process.env.RPC_URL!, 'confirmed');
 const slippage = 5;
 
 const owner = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
+const pumpApiKey = process.env.PUMP_API_KEY!;
 
 // swap sol to token using the Raydium API
 export async function swap(tokenAddress: string, amount: number) {
@@ -91,14 +92,14 @@ export async function sendPortalTransaction(
   amount: number | string,
   action: "buy" | "sell",
   denominatedInSol: boolean = true
-): Promise<boolean> {
-  const response = await fetch(`https://pumpportal.fun/api/trade-local`, {
+) : Promise<any> {
+  const response = await fetch(`https://pumpportal.fun/api/trade?api-key=${pumpApiKey}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      publicKey: owner.publicKey.toBase58(),
+      // publicKey: owner.publicKey.toBase58(),
       action: action,
       mint: tokenAddress,
       denominatedInSol: denominatedInSol ? "true" : "false", // see docs
@@ -110,18 +111,23 @@ export async function sendPortalTransaction(
   });
 
   console.log("response=", response);
+  const data = await response.json();
+  console.log("data=", data);
+  const signature = data.signature;
+  console.log(`Transaction: https://solscan.io/tx/${signature}`);
+  console.log("================================================");
 
-  if (response.status === 200) {
-    const data = await response.arrayBuffer();
-    const tx = VersionedTransaction.deserialize(new Uint8Array(data));
-    const signerKeyPair = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
-    tx.sign([signerKeyPair]);
-    const signature = await connection.sendTransaction(tx);
-    console.log(`Transaction: https://solscan.io/tx/${signature}`);
-    console.log("================================================")
-    return true;
-  } else {
-    console.error(response.statusText); // log error message
-    return false;
-  }
+  // if (response.status === 200) {
+  //   const data = await response.json();
+  //   const tx = VersionedTransaction.deserialize(new Uint8Array(data));
+  //   const signerKeyPair = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
+  //   tx.sign([signerKeyPair]);
+  //   const signature = await connection.sendTransaction(tx);
+  //   console.log(`Transaction: https://solscan.io/tx/${signature}`);
+  //   console.log("================================================")
+  //   return true;
+  // } else {
+  //   console.error(response.statusText); // log error message
+  //   return false;
+  // }
 }

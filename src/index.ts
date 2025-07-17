@@ -1,16 +1,17 @@
 import dotenv from "dotenv";
 import { getTweets } from "./get-tweets";
 import { resolveTokenAddress } from "./get-token-from-llm";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+// import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { sendPortalTransaction } from "./swap";
 import { feed } from "./market-feed";
 import { strategy } from "./strategy";
 import { usersList } from "./users-list";
 import { primusProof } from "./zktls";
+// Attestation type import removed since we now rely on boolean verify result
 
 dotenv.config({ quiet: true });
 
-const SOL_AMOUNT = 0.001;
+const SOL_AMOUNT = 0.0001;
 
 async function main(userName: string[]) {
     for (let user of userName) {
@@ -21,32 +22,36 @@ async function main(userName: string[]) {
             if (tokenAddress !== "null") {
                 console.log(`Trying to execute tweet => ${tweet.contents}`);
                 // subscribe first so we capture our own buy tick
-                feed.subscribe([tokenAddress]);
+                // feed.subscribe([tokenAddress]);
 
-                const tradeOk = await sendPortalTransaction(tokenAddress, SOL_AMOUNT, "buy", true);
+                const verified = await primusProof(tokenAddress, SOL_AMOUNT);
 
-                if (!tradeOk) {
-                  console.warn(`[MAIN] trade failed for ${tokenAddress}, skipping tracking.`);
-                  // unsubscribe if trade failed
-                  feed.unsubscribe([tokenAddress]);
-                  continue;
+                if (verified) {
+                    await sendPortalTransaction(tokenAddress, SOL_AMOUNT, "buy", true);
+                } else {
+                    console.warn("[MAIN] Attestation verification failed, skipping swap for", tokenAddress);
                 }
+                // if (!tradeOk) {
+                //   console.warn(`[MAIN] trade failed for ${tokenAddress}, skipping tracking.`);
+                //   // unsubscribe if trade failed
+                //   feed.unsubscribe([tokenAddress]);
+                //   continue;
+                // }
 
-                // start strategy tracking & market data
-                strategy.addPosition(tokenAddress, 0, 0);
+                // // start strategy tracking & market data
+                // strategy.addPosition(tokenAddress, 0, 0);
 
-                // ensure price events flow into strategy
-                if (!feed.listenerCount("price")) {
-                    feed.on("price", (mint: string, priceSol: number) => {
-                        strategy.onPrice(mint, priceSol);
-                    });
-                }
+                // // ensure price events flow into strategy
+                // if (!feed.listenerCount("price")) {
+                //     feed.on("price", (mint: string, priceSol: number) => {
+                //         strategy.onPrice(mint, priceSol);
+                //     });
+                // }
 
-                // unsubscribe when position closed
-                strategy.on("sold", ({ mint }: { mint: string }) => {
-                    feed.unsubscribe([mint]);
-                });
-                await primusProof(tokenAddress, SOL_AMOUNT);
+                // // unsubscribe when position closed
+                // strategy.on("sold", ({ mint }: { mint: string }) => {
+                //     feed.unsubscribe([mint]);
+                // });
             }
         }
     }
