@@ -28,6 +28,7 @@ Learn more about the project through the pitch deck - https://www.canva.com/desi
    #   PRIVATE_KEY=         # base-58 Solana key
    #   RPC_URL=             # your RPC endpoint
    #   OPENAI_API_KEY=
+   #   PUMP_API_KEY=
    #   RAPID_API_KEY=
    #   ZKTLS_APP_ID=
    #   ZKTLS_APP_SECRET=
